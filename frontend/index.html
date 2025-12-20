@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pimpri-Pune Resource Finder Pro</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+  <!-- Header -->
+  <header>
+    <div class="header-content">
+      <div class="logo">
+        <i class="fas fa-map-marked-alt"></i>
+        <span>Resource Finder Pro</span>
+      </div>
+      
+      <div class="search-container">
+        <i class="fas fa-search search-icon"></i>
+        <input type="text" id="searchBox" class="search-input" placeholder="Search by name, area, or service...">
+      </div>
+
+      <div class="user-actions" id="userActions">
+        <button class="btn btn-secondary" onclick="openModal('login')">
+          <i class="fas fa-sign-in-alt"></i> Login
+        </button>
+        <button class="btn btn-primary" onclick="openModal('register')">
+          <i class="fas fa-user-plus"></i> Register
+        </button>
+      </div>
+
+      <div class="user-info" id="userInfo" style="display: none;">
+        <div class="user-avatar" id="userAvatar"></div>
+        <span id="userName"></span>
+        <button class="btn btn-success" onclick="openModal('addResource')" style="padding: 8px 15px; font-size: 13px; margin-right: 10px;">
+          <i class="fas fa-plus"></i> Add Service
+        </button>
+        <button class="btn btn-secondary" onclick="logout()" style="padding: 6px 12px; font-size: 12px;">
+          <i class="fas fa-sign-out-alt"></i> Logout
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Filters -->
+  <div class="filters-container">
+    <div class="filters">
+      <button class="filter-btn active" onclick="filterCategory('all')" data-category="all">
+        <i class="fas fa-th"></i> All Resources
+      </button>
+      <button class="filter-btn" onclick="filterCategory('hospital')" data-category="hospital">
+        <i class="fas fa-hospital"></i> Hospitals
+      </button>
+      <button class="filter-btn" onclick="filterCategory('college')" data-category="college">
+        <i class="fas fa-graduation-cap"></i> Colleges
+      </button>
+      <button class="filter-btn" onclick="filterCategory('bloodbank')" data-category="bloodbank">
+        <i class="fas fa-tint"></i> Blood Banks
+      </button>
+      <button class="filter-btn" onclick="filterCategory('govt')" data-category="govt">
+        <i class="fas fa-landmark"></i> Govt Offices
+      </button>
+      <button class="filter-btn" onclick="filterCategory('school')" data-category="school">
+        <i class="fas fa-school"></i> Schools
+      </button>
+      <button class="filter-btn" onclick="filterCategory('pharmacy')" data-category="pharmacy">
+        <i class="fas fa-pills"></i> Pharmacies
+      </button>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <main>
+    <aside id="sidebar">
+      <div class="loading">
+        <i class="fas fa-spinner fa-spin"></i> Loading resources...
+      </div>
+    </aside>
+    <div id="map"></div>
+  </main>
+
+  <!-- Login Modal -->
+  <div class="modal" id="loginModal">
+    <div class="modal-content">
+      <button class="modal-close" onclick="closeModal('login')">
+        <i class="fas fa-times"></i>
+      </button>
+      <div class="modal-header">
+        <h2>Welcome Back!</h2>
+        <p>Login to access your saved favorites</p>
+      </div>
+      <div class="error-message" id="loginError"></div>
+      <form id="loginForm" onsubmit="handleLogin(event)">
+        <div class="form-group">
+          <label for="loginEmail">Email Address</label>
+          <input type="email" id="loginEmail" class="form-input" placeholder="your@email.com" required>
+        </div>
+        <div class="form-group">
+          <label for="loginPassword">Password</label>
+          <input type="password" id="loginPassword" class="form-input" placeholder="Enter your password" required>
+        </div>
+        <div class="form-actions">
+          <button type="submit" class="btn btn-primary btn-full">
+            <i class="fas fa-sign-in-alt"></i> Login
+          </button>
+        </div>
+      </form>
+      <div class="switch-auth">
+        Don't have an account? <a onclick="switchModal('login', 'register')">Register here</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Register Modal -->
+  <div class="modal" id="registerModal">
+    <div class="modal-content">
+      <button class="modal-close" onclick="closeModal('register')">
+        <i class="fas fa-times"></i>
+      </button>
+      <div class="modal-header">
+        <h2>Create Account</h2>
+        <p>Join us to save your favorite places</p>
+      </div>
+      <div class="error-message" id="registerError"></div>
+      <div class="success-message" id="registerSuccess"></div>
+      <form id="registerForm" onsubmit="handleRegister(event)">
+        <div class="form-group">
+          <label for="registerName">Full Name</label>
+          <input type="text" id="registerName" class="form-input" placeholder="John Doe" required>
+        </div>
+        <div class="form-group">
+          <label for="registerEmail">Email Address</label>
+          <input type="email" id="registerEmail" class="form-input" placeholder="your@email.com" required>
+        </div>
+        <div class="form-group">
+          <label for="registerPassword">Password</label>
+          <input type="password" id="registerPassword" class="form-input" placeholder="Min. 6 characters" minlength="6" required>
+        </div>
+        <div class="form-group">
+          <label for="registerConfirmPassword">Confirm Password</label>
+          <input type="password" id="registerConfirmPassword" class="form-input" placeholder="Re-enter password" required>
+        </div>
+        <div class="form-actions">
+          <button type="submit" class="btn btn-primary btn-full">
+            <i class="fas fa-user-plus"></i> Create Account
+          </button>
+        </div>
+      </form>
+      <div class="switch-auth">
+        Already have an account? <a onclick="switchModal('register', 'login')">Login here</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add Resource Modal -->
+  <div class="modal" id="addResourceModal">
+    <div class="modal-content modal-large">
+      <button class="modal-close" onclick="closeModal('addResource')">
+        <i class="fas fa-times"></i>
+      </button>
+      <div class="modal-header">
+        <h2>Add New Service</h2>
+        <p>Help others by adding a useful service or location</p>
+      </div>
+      <div class="error-message" id="addResourceError"></div>
+      <div class="success-message" id="addResourceSuccess"></div>
+      <form id="addResourceForm" onsubmit="handleAddResource(event)">
+        <div class="form-row">
+          <div class="form-group">
+            <label for="resourceName">Service/Place Name *</label>
+            <input type="text" id="resourceName" class="form-input" placeholder="e.g., City Hospital" required>
+          </div>
+          <div class="form-group">
+            <label for="resourceCategory">Category *</label>
+            <select id="resourceCategory" class="form-input" required>
+              <option value="">Select Category</option>
+              <option value="hospital">Hospital</option>
+              <option value="college">College</option>
+              <option value="bloodbank">Blood Bank</option>
+              <option value="govt">Government Office</option>
+              <option value="school">School</option>
+              <option value="pharmacy">Pharmacy</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="resourceAddress">Full Address *</label>
+          <input type="text" id="resourceAddress" class="form-input" placeholder="Complete address with pin code" required>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="resourcePhone">Phone Number *</label>
+            <input type="tel" id="resourcePhone" class="form-input" placeholder="020-12345678" required>
+          </div>
+          <div class="form-group">
+            <label for="resourceHours">Working Hours *</label>
+            <input type="text" id="resourceHours" class="form-input" placeholder="e.g., 9 AM - 6 PM or 24/7" required>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="resourceArea">Area/Locality *</label>
+          <select id="resourceArea" class="form-input" required onchange="toggleCustomArea()">
+            <option value="">Select Area</option>
+            <option value="Pimpri">Pimpri</option>
+            <option value="Chinchwad">Chinchwad</option>
+            <option value="Akurdi">Akurdi</option>
+            <option value="Nigdi">Nigdi</option>
+            <option value="Thergaon">Thergaon</option>
+            <option value="Alandi">Alandi</option>
+            <option value="Wakad">Wakad</option>
+            <option value="Hinjewadi">Hinjewadi</option>
+            <option value="Bhosari">Bhosari</option>
+            <option value="Moshi">Moshi</option>
+            <option value="Chakan">Chakan</option>
+            <option value="Dehu Road">Dehu Road</option>
+            <option value="map">📍 Click on Map to Select Location</option>
+            <option value="custom">✍️ Enter Custom Coordinates</option>
+          </select>
+        </div>
+
+        <div id="mapSelectionSection" style="display: none;">
+          <div class="map-instruction-box">
+            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
+              <i class="fas fa-map-marker-alt" style="font-size: 24px; color: #667eea;"></i>
+              <div>
+                <strong>Search and click on the map to select location</strong>
+                <p style="margin: 5px 0 0 0; color: #666; font-size: 13px;">First search for your area, then click on the exact location.</p>
+              </div>
+            </div>
+            
+            <!-- Map Search Box -->
+            <div style="position: relative; margin-bottom: 15px;">
+              <input 
+                type="text" 
+                id="mapSearchBox" 
+                class="form-input" 
+                placeholder="🔍 Search area (e.g., Pimpri Hospital, Chinchwad Station...)"
+                style="padding-right: 45px;"
+              >
+              <button 
+                type="button" 
+                onclick="searchOnMap()" 
+                style="position: absolute; right: 5px; top: 50%; transform: translateY(-50%); background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; padding: 8px 15px; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: 600;">
+                <i class="fas fa-search"></i> Search
+              </button>
+            </div>
+
+            <!-- Interactive Map -->
+            <div id="pickLocationMap" style="height: 400px; border-radius: 12px; overflow: hidden; border: 3px solid #667eea; margin-bottom: 15px;"></div>
+            
+            <div id="selectedLocation" style="display: none; background: #e8f5e9; padding: 10px; border-radius: 8px;">
+              <i class="fas fa-check-circle" style="color: #34a853;"></i>
+              <strong>Location Selected:</strong>
+              <div style="margin-top: 5px; font-size: 13px;">
+                <span id="selectedCoords"></span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div id="customAreaSection" style="display: none;">
+          <div class="form-group">
+            <label for="customAreaName">Custom Area Name *</label>
+            <input type="text" id="customAreaName" class="form-input" placeholder="e.g., Kharadi, Viman Nagar">
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="resourceLat">Latitude *</label>
+              <input type="number" id="resourceLat" class="form-input" placeholder="18.6298" step="0.000001">
+            </div>
+            <div class="form-group">
+              <label for="resourceLng">Longitude *</label>
+              <input type="number" id="resourceLng" class="form-input" placeholder="73.8037" step="0.000001">
+            </div>
+          </div>
+          <div class="form-help">
+            <i class="fas fa-lightbulb"></i> 
+            <span><strong>How to get coordinates:</strong> Open Google Maps → Search your location → Right-click on the exact spot → Click on the coordinates to copy them</span>
+          </div>
+        </div>
+
+        <div class="form-help" id="autoLocationHelp">
+          <i class="fas fa-info-circle"></i> 
+          <span>The location will be automatically placed on the map based on the area you select</span>
+        </div>
+
+        <div class="form-group">
+          <label>
+            <input type="checkbox" id="resourceEmergency" style="width: auto; margin-right: 8px;">
+            This is a 24/7 emergency service
+          </label>
+        </div>
+
+        <div class="form-actions">
+          <button type="submit" class="btn btn-primary btn-full">
+            <i class="fas fa-plus"></i> Add Service
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+  <script src="data.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>
